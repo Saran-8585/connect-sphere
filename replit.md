@@ -8,8 +8,8 @@ This is a Flask-based real-time messaging application with AI-powered sentiment 
 
 ### Backend Architecture
 - **Framework**: Flask web application with SQLAlchemy ORM
-- **Database**: PostgreSQL with Flask-SQLAlchemy for ORM operations
-- **Authentication**: Replit OAuth integration using Flask-Dance
+- **Database**: SQLite database stored locally in `messaging_app.db` file
+- **Authentication**: Simple demo login system with user registration
 - **Session Management**: Flask-Login for user session handling
 - **WSGI Server**: Gunicorn for production deployment
 
@@ -62,8 +62,8 @@ This is a Flask-based real-time messaging application with AI-powered sentiment 
 - **Validation**: email-validator for email format validation
 
 ### External Services
-- **Replit Auth**: OAuth provider for user authentication
-- **PostgreSQL**: Primary database for data persistence
+- **TextBlob**: AI-powered sentiment analysis for message processing
+- **UI Avatars API**: Automatic profile image generation for new users
 
 ## Deployment Strategy
 
@@ -79,14 +79,16 @@ This is a Flask-based real-time messaging application with AI-powered sentiment 
 - Connection pooling with pre-ping for database reliability
 
 ### Environment Configuration
-- `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: Flask session encryption key
-- Database connection pooling with 300-second recycle timeout
+- SQLite database file: `messaging_app.db` (stored in project root)
+- Database connection with pre-ping validation
 
 ## Changelog
 - June 24, 2025: Initial setup with Flask backend and Replit Auth
 - June 24, 2025: Replaced Replit Auth with simple demo login system
 - June 24, 2025: Added user registration system with signup page
+- June 24, 2025: Implemented group chat functionality with multiple participants
+- June 24, 2025: Migrated from PostgreSQL to SQLite local database storage
 
 ## User Preferences
 
