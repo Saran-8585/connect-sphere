@@ -2,6 +2,7 @@ from flask import session, render_template, request, jsonify, redirect, url_for,
 from flask_login import current_user, login_user, logout_user
 from sqlalchemy import or_, and_, desc
 from textblob import TextBlob
+from datetime import datetime
 import logging
 
 from app import app, db
@@ -44,6 +45,61 @@ def logout():
     logout_user()
     flash('Logged out successfully', 'info')
     return redirect(url_for('index'))
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    try:
+        # Get form data
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
+        email = request.form.get('email', '').strip()
+        
+        # Validate required fields
+        if not first_name or not email:
+            flash('First name and email are required', 'error')
+            return redirect(url_for('signup'))
+        
+        # Generate user ID from email
+        user_id = email.split('@')[0].lower().replace('.', '_')
+        
+        # Check if user already exists
+        existing_user = User.query.filter((User.id == user_id) | (User.email == email)).first()
+        if existing_user:
+            flash('A user with this email already exists', 'error')
+            return redirect(url_for('signup'))
+        
+        # Generate profile image URL
+        display_name = f"{first_name} {last_name}".strip()
+        profile_image_url = f"https://ui-avatars.com/api/?name={display_name.replace(' ', '+')}&background=random&color=fff"
+        
+        # Create new user
+        new_user = User(
+            id=user_id,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            profile_image_url=profile_image_url,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        # Log the user in automatically
+        login_user(new_user)
+        flash(f'Welcome {display_name}! Your account has been created.', 'success')
+        return redirect(url_for('chat'))
+        
+    except Exception as e:
+        logging.error(f"Error creating user: {str(e)}")
+        db.session.rollback()
+        flash('An error occurred while creating your account. Please try again.', 'error')
+        return redirect(url_for('signup'))
 
 @app.route('/chat')
 @require_login

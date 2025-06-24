@@ -84,7 +84,9 @@ This is a Flask-based real-time messaging application with AI-powered sentiment 
 - Database connection pooling with 300-second recycle timeout
 
 ## Changelog
-- June 24, 2025. Initial setup
+- June 24, 2025: Initial setup with Flask backend and Replit Auth
+- June 24, 2025: Replaced Replit Auth with simple demo login system
+- June 24, 2025: Added user registration system with signup page
 
 ## User Preferences
 

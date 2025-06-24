@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Messaging App{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100">
+        <div class="col-md-6 col-lg-4 mx-auto">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i data-feather="user-plus" width="48" height="48" class="text-primary mb-3"></i>
+                        <h2 class="card-title">Create Account</h2>
+                        <p class="text-muted">Join the messaging platform</p>
+                    </div>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form action="{{ url_for('register') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="form-text">This will be used to create your username</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                            <i data-feather="user-plus" class="me-2"></i>
+                            Create Account
+                        </button>
+                    </form>
+                    
+                    <div class="text-center">
+                        <hr class="my-3">
+                        <p class="text-muted mb-3">Already have an account?</p>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                            <i data-feather="log-in" class="me-2"></i>
+                            Login with Demo Account
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
