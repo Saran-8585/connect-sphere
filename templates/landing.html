@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Messaging App{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100">
+        <div class="col-md-6 mx-auto text-center">
+            <div class="card border-0 bg-transparent">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i data-feather="message-circle" width="64" height="64" class="text-primary"></i>
+                    </div>
+                    
+                    <h1 class="display-4 mb-3">Welcome to Messages</h1>
+                    <p class="lead mb-4 text-muted">
+                        Connect with others through secure, real-time messaging with AI-powered sentiment analysis.
+                    </p>
+                    
+                    <div class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i data-feather="shield" class="text-success mb-2"></i>
+                                    <h6>Secure</h6>
+                                    <small class="text-muted">Protected authentication</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i data-feather="zap" class="text-warning mb-2"></i>
+                                    <h6>Real-time</h6>
+                                    <small class="text-muted">Instant messaging</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i data-feather="brain" class="text-info mb-2"></i>
+                                    <h6>AI-Powered</h6>
+                                    <small class="text-muted">Sentiment analysis</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
+                        <i data-feather="log-in" class="me-2"></i>
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
