@@ -158,7 +158,8 @@ function renderNewMessages(newMessages) {
 
 // Create HTML for a message
 function createMessageHTML(message) {
-    const currentUserId = '{{ current_user.id }}';
+    // Get current user ID from a global variable set by the template
+    const currentUserId = window.currentUserId;
     const isSent = message.sender_id === currentUserId;
     const messageClass = isSent ? 'sent' : 'received';
     const cardClass = isSent ? 'bg-primary text-white' : 'bg-body-secondary';

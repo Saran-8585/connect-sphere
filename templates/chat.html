@@ -158,6 +158,10 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    // Set current user ID for JavaScript
+    window.currentUserId = '{{ current_user.id }}';
+</script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script>
     // Initialize chat when page loads

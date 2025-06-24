@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Messaging App{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="text-center">
+        <div class="mb-4">
+            <i data-feather="alert-triangle" width="64" height="64" class="text-danger"></i>
+        </div>
+        <h1 class="display-4 mb-3">Server Error</h1>
+        <p class="lead mb-4 text-muted">
+            Something went wrong on our end. Please try again later.
+        </p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i data-feather="home" class="me-2"></i>
+            Go Home
+        </a>
+    </div>
+</div>
+{% endblock %}
