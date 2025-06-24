@@ -61,6 +61,68 @@ class Message(db.Model):
             'read': self.read
         }
 
+class Group(db.Model):
+    __tablename__ = 'groups'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    creator = db.relationship('User', backref='created_groups')
+    members = db.relationship('User', secondary='group_members', backref='groups')
+    messages = db.relationship('GroupMessage', backref='group', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def to_dict(self, current_user_id):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'is_group': True,
+            'member_count': len(self.members),
+            'members': [{
+                'id': member.id,
+                'name': member.display_name,
+                'profile_image_url': member.profile_image_url
+            } for member in self.members],
+            'created_by': self.creator.display_name,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+# Association table for group members
+group_members = db.Table('group_members',
+    db.Column('group_id', db.Integer, db.ForeignKey('groups.id'), primary_key=True),
+    db.Column('user_id', db.String, db.ForeignKey('users.id'), primary_key=True)
+)
+
+class GroupMessage(db.Model):
+    __tablename__ = 'group_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    sender_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
+    sentiment = db.Column(db.String(20), nullable=True)
+    sentiment_score = db.Column(db.Float, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    
+    sender = db.relationship('User', backref='group_messages')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'content': self.content,
+            'sender_id': self.sender_id,
+            'group_id': self.group_id,
+            'sender_name': self.sender.display_name,
+            'sender_profile_image': self.sender.profile_image_url,
+            'sentiment': self.sentiment,
+            'sentiment_score': self.sentiment_score,
+            'timestamp': self.timestamp.isoformat(),
+            'is_group_message': True
+        }
+
 class Conversation(db.Model):
     __tablename__ = 'conversations'
     id = db.Column(db.Integer, primary_key=True)
@@ -83,6 +145,9 @@ class Conversation(db.Model):
         other_user = self.get_other_user(current_user_id)
         return {
             'id': self.id,
+            'name': other_user.display_name,
+            'profile_image_url': other_user.profile_image_url,
+            'is_group': False,
             'other_user': {
                 'id': other_user.id,
                 'name': other_user.display_name,

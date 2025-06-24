@@ -7,7 +7,7 @@ import logging
 
 from app import app, db
 from simple_auth import require_login, create_demo_users
-from models import User, Message, Conversation
+from models import User, Message, Conversation, Group, GroupMessage, group_members
 
 # Make session permanent
 @app.before_request
@@ -115,7 +115,10 @@ def chat():
         )
     ).order_by(desc(Conversation.updated_at)).all()
     
-    return render_template('chat.html', users=users, conversations=conversations, current_user=current_user)
+    # Get groups for current user
+    groups = current_user.groups
+    
+    return render_template('chat.html', users=users, conversations=conversations, groups=groups, current_user=current_user)
 
 @app.route('/api/send_message', methods=['POST'])
 @require_login
@@ -261,6 +264,177 @@ def get_users():
     except Exception as e:
         logging.error(f"Error getting users: {str(e)}")
         return jsonify({'error': 'Failed to get users'}), 500
+
+@app.route('/api/get_chats')
+@require_login
+def get_chats():
+    try:
+        # Get direct conversations
+        conversations = db.session.query(Conversation).filter(
+            or_(
+                Conversation.user1_id == current_user.id,
+                Conversation.user2_id == current_user.id
+            )
+        ).order_by(desc(Conversation.updated_at)).all()
+        
+        # Get groups
+        groups = current_user.groups
+        
+        # Combine and format
+        chats = []
+        
+        # Add conversations
+        for conv in conversations:
+            chats.append(conv.to_dict(current_user.id))
+        
+        # Add groups
+        for group in groups:
+            chats.append(group.to_dict(current_user.id))
+        
+        # Sort by updated_at
+        chats.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
+        
+        return jsonify({'chats': chats})
+        
+    except Exception as e:
+        logging.error(f"Error getting chats: {str(e)}")
+        return jsonify({'error': 'Failed to get chats'}), 500
+
+@app.route('/api/create_group', methods=['POST'])
+@require_login
+def create_group():
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+        member_ids = data.get('member_ids', [])
+        
+        if not name:
+            return jsonify({'error': 'Group name is required'}), 400
+        
+        if len(member_ids) < 1:
+            return jsonify({'error': 'At least one other member is required'}), 400
+        
+        # Create group
+        group = Group(
+            name=name,
+            description=description,
+            created_by=current_user.id
+        )
+        
+        db.session.add(group)
+        db.session.flush()  # Get the group ID
+        
+        # Add creator as member
+        group.members.append(current_user)
+        
+        # Add other members
+        for member_id in member_ids:
+            user = User.query.get(member_id)
+            if user and user != current_user:
+                group.members.append(user)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'group': group.to_dict(current_user.id)
+        })
+        
+    except Exception as e:
+        logging.error(f"Error creating group: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to create group'}), 500
+
+@app.route('/api/send_group_message', methods=['POST'])
+@require_login
+def send_group_message():
+    try:
+        data = request.get_json()
+        content = data.get('content', '').strip()
+        group_id = data.get('group_id')
+        
+        if not content or not group_id:
+            return jsonify({'error': 'Content and group_id are required'}), 400
+        
+        # Check if group exists and user is a member
+        group = Group.query.get(group_id)
+        if not group:
+            return jsonify({'error': 'Group not found'}), 404
+        
+        if current_user not in group.members:
+            return jsonify({'error': 'You are not a member of this group'}), 403
+        
+        # Analyze sentiment
+        blob = TextBlob(content)
+        sentiment_score = blob.sentiment.polarity
+        
+        if sentiment_score > 0.1:
+            sentiment = 'positive'
+        elif sentiment_score < -0.1:
+            sentiment = 'negative'
+        else:
+            sentiment = 'neutral'
+        
+        # Create group message
+        message = GroupMessage(
+            content=content,
+            sender_id=current_user.id,
+            group_id=group_id,
+            sentiment=sentiment,
+            sentiment_score=sentiment_score
+        )
+        
+        db.session.add(message)
+        
+        # Update group timestamp
+        group.updated_at = datetime.now()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': message.to_dict()
+        })
+        
+    except Exception as e:
+        logging.error(f"Error sending group message: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to send group message'}), 500
+
+@app.route('/api/get_group_messages')
+@require_login
+def get_group_messages():
+    try:
+        group_id = request.args.get('group_id')
+        last_message_id = request.args.get('last_message_id', 0, type=int)
+        
+        if not group_id:
+            return jsonify({'error': 'group_id is required'}), 400
+        
+        # Check if group exists and user is a member
+        group = Group.query.get(group_id)
+        if not group:
+            return jsonify({'error': 'Group not found'}), 404
+        
+        if current_user not in group.members:
+            return jsonify({'error': 'You are not a member of this group'}), 403
+        
+        # Get messages
+        query = GroupMessage.query.filter(GroupMessage.group_id == group_id)
+        
+        if last_message_id > 0:
+            query = query.filter(GroupMessage.id > last_message_id)
+        
+        messages = query.order_by(GroupMessage.timestamp).all()
+        
+        return jsonify({
+            'messages': [message.to_dict() for message in messages]
+        })
+        
+    except Exception as e:
+        logging.error(f"Error getting group messages: {str(e)}")
+        return jsonify({'error': 'Failed to get group messages'}), 500
 
 @app.errorhandler(404)
 def not_found(error):
