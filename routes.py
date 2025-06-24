@@ -1,14 +1,12 @@
-from flask import session, render_template, request, jsonify, redirect, url_for
-from flask_login import current_user
+from flask import session, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import current_user, login_user, logout_user
 from sqlalchemy import or_, and_, desc
 from textblob import TextBlob
 import logging
 
 from app import app, db
-from replit_auth import require_login, make_replit_blueprint
+from simple_auth import require_login, create_demo_users
 from models import User, Message, Conversation
-
-app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
 
 # Make session permanent
 @app.before_request
@@ -20,6 +18,32 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
     return render_template('landing.html')
+
+@app.route('/login')
+def login():
+    # Create demo users if they don't exist
+    create_demo_users()
+    
+    # Get all users for selection
+    users = User.query.all()
+    return render_template('login.html', users=users)
+
+@app.route('/login/<user_id>')
+def login_as(user_id):
+    user = User.query.get(user_id)
+    if user:
+        login_user(user)
+        flash(f'Logged in as {user.display_name}', 'success')
+        return redirect(url_for('chat'))
+    else:
+        flash('User not found', 'error')
+        return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash('Logged out successfully', 'info')
+    return redirect(url_for('index'))
 
 @app.route('/chat')
 @require_login

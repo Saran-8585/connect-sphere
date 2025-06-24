@@ -34,3 +34,6 @@ with app.app_context():
     import models  # noqa: F401
     db.create_all()
     logging.info("Database tables created")
+    
+    # Import and setup simple auth
+    import simple_auth  # noqa: F401
