@@ -12,7 +12,7 @@ from models import User, Message, Conversation, Group, GroupMessage, group_membe
 # Make session permanent
 @app.before_request
 def make_session_permanent():
-    session.permanent = True
+    session.permanent = True 
 
 @app.route('/')
 def index():

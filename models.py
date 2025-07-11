@@ -4,7 +4,7 @@ from flask_login import UserMixin
 from sqlalchemy import UniqueConstraint
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'users' 
     id = db.Column(db.String, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=True)
     first_name = db.Column(db.String, nullable=True)

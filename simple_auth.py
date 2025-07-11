@@ -15,7 +15,7 @@ def load_user(user_id):
 def require_login(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
+        if not current_user.is_authenticated: 
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function

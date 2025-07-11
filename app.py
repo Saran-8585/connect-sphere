@@ -6,7 +6,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG) 
 
 class Base(DeclarativeBase):
     pass
@@ -15,7 +15,7 @@ db = SQLAlchemy(model_class=Base)
 
 # create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
+app.secret_key = "super secrect key"
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1) # needed for url_for to generate with https
 
 # configure the database - SQLite file in project directory
